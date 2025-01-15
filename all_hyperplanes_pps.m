@@ -34,7 +34,8 @@ function [A, b] = all_hyperplanes_pps(pps, ellipsoid)
 	A = nan([DIM N N steps]);
 	b = nan([N N steps]);
 
-	parfor step=1:steps
+	% parfor
+	for step=1:steps
 		step_paths = paths(:,:,:,step);
 		[Aslice, bslice] = all_hyperplanes_pps_mex(step_paths, ellipsoid);
 		A(:,:,:,step) = Aslice;

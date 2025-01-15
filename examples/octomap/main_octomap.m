@@ -6,15 +6,15 @@ function main_octomap()
 TIMESCALE = 0.25;
 
 % read input files
-EXAMPLE = 'examples/octomap/warehouse4';
+EXAMPLE = 'examples/octomap/drones32c';
 discrete_plan_file = [EXAMPLE '.json'];
 octree_file = [EXAMPLE '.bt'];
-s = read_schedule(discrete_plan_file);
+[s, lengths] = read_schedule(discrete_plan_file);
 [~, ~, N] = size(s);
 bbox = read_octomap_bbox_mex(octree_file);
 
 % print some info about the discrete plan input
-analyze_schedule(s);
+% analyze_schedule(s);
 
 % optional: clip the number of robots so it runs faster
 % N = 5;
@@ -36,21 +36,40 @@ ellipsoid = [0.12 0.12 0.3];
 obs_ellipsoid = [0.15 0.15 0.15];
 
 % number of iterations of refinement
-iters = 2;
+iters = 8;
 
 % robot/obstacle separating hyperplane function
 pp_obs_sep_fun = @(pps, obs_ellipsoid) pp_obs_sep_octomap(pps, obs_ellipsoid, octree_file);
 
 % main routine
-[pps, costs, corridors] = smoothener(s, bbox, deg, cont, TIMESCALE, ellipsoid, obs_ellipsoid, iters, ...
+[pps, costs, corridors] = smoothener(s, lengths, bbox, deg, cont, TIMESCALE, ellipsoid, obs_ellipsoid, iters, ...
 	pp_obs_sep_fun, @corridor_trajectory_optimize);
+
+
+pps = pps(end,:);
+
+% find appropriate time stretching factor based on the physical limits of our quad
+durations = zeros(1, N);
+stretches = zeros(1, N);
+for i=1:N
+    durations(i) = pps{i}.breaks(end);
+    [~, stretches(i)] = stretchtime_to_limit(pps{i}, 0.033);
+end
+fprintf('Total Duration planned: %f s, stretched: %f s (factor: %f)\n', max(durations), max(durations) * max(stretches), max(stretches));
+
+fprintf('Cost (db-CBS metric): %f\n', sum(TIMESCALE*max(stretches)*(lengths+2)));
+
+% actually stretch the trajectories
+for i=1:N
+    pps{i} = pp_stretchtime(pps{i}, max(stretches));
+    %pps{i} = pp_reduce(pps{i});
+end
 
 % Plot the results.
 % -----------------
 
 % smoothener returns the piecewise polynomials for every iteration of refinement.
 % here, we plot only the results of the final iteration.
-pps = pps(end,:);
 
 % set up the figure.
 clf; hold on; axis equal;

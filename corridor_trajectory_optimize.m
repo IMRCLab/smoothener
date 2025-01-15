@@ -21,7 +21,7 @@
 %
 function [pp, cost] = corridor_trajectory_optimize(...
 	Arobots, brobots, Aobs, bobs, lb, ub, ...
-	path, deg, cont, timescale, ellipsoid, obs_ellipsoid)
+	path, pathlength, deg, cont, timescale, ellipsoid, obs_ellipsoid)
 
 	[dim, ~, steps] = size(Arobots);
 	assert(size(path, 2) == steps + 1);
@@ -120,7 +120,9 @@ function [pp, cost] = corridor_trajectory_optimize(...
 			end
 		end
 
-		if step == steps
+		%dbcbs: sum-of-cost vs. makespan change
+		%if step == pathlength+2
+        if step == steps
 			% goal position and 0 derivatives
 			Aeq = [Aeq; kron(eye(dim), t1 * bern') * dim_collect];
 			beq = [beq; goal];

@@ -20,7 +20,7 @@ function polytopes = pp_obs_sep_grid(pps, obs_ellipsoid, boxes)
 	polytopes = cell(N,k-1);
 
 	% parfor
-	parfor irobot=1:N
+	for irobot=1:N
 		for istep = 1:(k-1)
 			seg = pp_sample_piece(pps{irobot}, istep, 32)';
 			polytope = zeros(nObs, 4);

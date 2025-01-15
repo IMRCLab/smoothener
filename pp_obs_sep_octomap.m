@@ -19,7 +19,7 @@ function polytopes = pp_obs_sep_octomap(pps, obs_ellipsoid, octomap_filepath)
 	polytopes = cell(N,k-1);
 
 	% parfor
-	parfor n=1:N
+	for n=1:N
 		pp_filepath = tempname();
 		hs_filepath = tempname();
 		write_pptrajs(pps(n), pp_filepath);

@@ -32,7 +32,7 @@ boxes = SCALE * boxes;
 bbox = SCALE * [[-0.5 -0.5 -0.5]', dims(:) - 0.5];
 
 % print some info about the discrete plan input
-analyze_schedule(s);
+%analyze_schedule(s);
 
 % optional: clip the number of robots so it runs faster
 %N = 2;

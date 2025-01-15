@@ -39,7 +39,7 @@
 %         array of [iters, N] costs
 %
 function [all_pps, all_costs, all_corridors] = smoothener(...
-	paths, bbox, ...
+	paths, lengths, bbox, ...
 	deg, cont, timescale, ...
 	ellipsoid, obs_ellipsoid, ...
 	iters, ...
@@ -64,6 +64,7 @@ function [all_pps, all_costs, all_corridors] = smoothener(...
 	% for input to pp-vs-octree obstacle hyperplane function
 	pps = path_linear_pps(paths, timescale, deg + 1);
 
+    t_all = tic;
 	for iter=1:iters
 		fprintf('iteration %d of %d...\n', iter, iters);
 		tic;
@@ -91,7 +92,7 @@ function [all_pps, all_costs, all_corridors] = smoothener(...
 		pps = cell(1,N);
 		iter_costs = zeros(1,N);
 		% parfor
-		parfor j=1:N
+		for j=1:N
 			hs_slice = squeeze(hs(j,:));
 			step_n_faces = cellfun(@(a) size(a, 1), hs_slice);
 			assert(length(step_n_faces) == (k-1));
@@ -112,7 +113,7 @@ function [all_pps, all_costs, all_corridors] = smoothener(...
 				Arobots, brobots, ...
 				Aobs, bobs, ...
 				lb, ub,...
-				paths(:,:,j), deg, cont, timescale, ellipsoid, obs_ellipsoid);
+				paths(:,:,j), lengths(j), deg, cont, timescale, ellipsoid, obs_ellipsoid);
 
 			s = [];
 			s.Arobots = Arobots;
@@ -127,5 +128,7 @@ function [all_pps, all_costs, all_corridors] = smoothener(...
 		fprintf('cost: %f\n', sum(iter_costs));
 		all_costs(iter,:) = iter_costs;
 		all_pps(iter,:) = pps;
-	end
+    end
+    t_all = toc(t_all);
+    fprintf('all iters: %f sec\n', t_all);
 end
